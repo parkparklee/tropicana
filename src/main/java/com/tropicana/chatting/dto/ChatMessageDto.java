@@ -1,11 +1,11 @@
-package com.tropicana.chatting.entity;
+package com.tropicana.chatting.dto;
 
 import lombok.Builder;
 import lombok.Getter;
 
 @Builder
 @Getter
-public class ChatMessage {
+public class ChatMessageDto {
 
   public enum Type {
     INIT, REJOIN, CHAT, LEAVE;
