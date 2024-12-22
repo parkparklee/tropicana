@@ -3,10 +3,10 @@ package com.tropicana.chatting.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tropicana.chatting.dto.ChatMessageDto;
 import com.tropicana.chatting.dto.ChatMessageDto.Type;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -20,7 +20,7 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
 
   private final ObjectMapper mapper;
   private final Set<WebSocketSession> sessions = new HashSet<>();
-  private final Map<Long, Set<WebSocketSession>> chatRooms = new HashMap<>();
+  private final Map<Long, Set<WebSocketSession>> chatRooms = new ConcurrentHashMap<>();
 
   @Override
   public void afterConnectionEstablished(WebSocketSession session) throws Exception {
