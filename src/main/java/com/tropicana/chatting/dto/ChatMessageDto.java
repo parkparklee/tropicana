@@ -8,7 +8,7 @@ import lombok.Getter;
 public class ChatMessageDto {
 
   public enum Type {
-    INIT, REJOIN, CHAT, LEAVE;
+    CREATE, JOIN, REJOIN, CHAT, LEAVE;
   }
 
   private final Type type;

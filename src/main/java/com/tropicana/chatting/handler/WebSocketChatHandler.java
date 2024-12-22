@@ -3,6 +3,7 @@ package com.tropicana.chatting.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tropicana.chatting.dto.ChatMessageDto;
 import com.tropicana.chatting.dto.ChatMessageDto.Type;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -27,20 +28,36 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
     sessions.add(session);
   }
 
+  //TODO greeting & leaving 메시지에 userId 대신 사용자가 설정한 이름을 넣도록 수정해야 함
   @Override
   protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
     String payload = message.getPayload();
 
     ChatMessageDto chatMessage = mapper.readValue(payload, ChatMessageDto.class);
 
-    if (chatMessage.getType().equals(Type.INIT)) {
+    if (chatMessage.getType().equals(Type.CREATE)) {
       chatRooms.computeIfAbsent(chatMessage.getChatRoomId(), k -> new HashSet<>()).add(session);
+    } else if (chatMessage.getType().equals(Type.JOIN)) {
+      Long chatRoomId = chatMessage.getChatRoomId();
+      chatRooms.get(chatRoomId).add(session);
+
+      String greetingMessage = String.format("%s님이 입장하셨습니다.", chatMessage.getUserId());
+      sendMessage(chatRoomId, greetingMessage);
+
+    } else if (chatMessage.getType().equals(Type.REJOIN)) {
+      chatRooms.get(chatMessage.getChatRoomId()).add(session);
     } else if (chatMessage.getType().equals(Type.CHAT)) {
-      for (WebSocketSession webSocketSession : chatRooms.get(chatMessage.getChatRoomId())) {
-        webSocketSession.sendMessage(new TextMessage(mapper.writeValueAsString(chatMessage)));
-      }
+      sendMessage(chatMessage.getChatRoomId(), chatMessage.getMessage());
     } else if (chatMessage.getType().equals(Type.LEAVE)) {
       chatRooms.get(chatMessage.getChatRoomId()).remove(session);
+      String leavingMessage = String.format("%s님이 퇴장하셨습니다.", chatMessage.getUserId());
+      sendMessage(chatMessage.getChatRoomId(), leavingMessage);
+    }
+  }
+
+  private void sendMessage(Long chatRoomId, String message) throws IOException {
+    for (WebSocketSession webSocketSession : chatRooms.get(chatRoomId)) {
+      webSocketSession.sendMessage(new TextMessage(message));
     }
   }
 
